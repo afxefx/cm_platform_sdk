@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -140,10 +139,14 @@ public class CMWeatherManager {
         }
 
         try {
+            int tempUnit = CMSettings.Global.getInt(mContext.getContentResolver(),
+                    CMSettings.Global.WEATHER_TEMPERATURE_UNIT,
+                        WeatherContract.WeatherColumns.TempUnit.FAHRENHEIT);
+
             RequestInfo info = new RequestInfo
                     .Builder(mRequestInfoListener)
                     .setLocation(location)
-                    .setTemperatureUnit(getSelectedTemperatureUnit(mContext))
+                    .setTemperatureUnit(tempUnit)
                     .build();
             if (listener != null) mWeatherUpdateRequestListeners.put(info, listener);
             sWeatherManagerService.updateWeather(info);
@@ -174,10 +177,14 @@ public class CMWeatherManager {
         }
 
         try {
+            int tempUnit = CMSettings.Global.getInt(mContext.getContentResolver(),
+                    CMSettings.Global.WEATHER_TEMPERATURE_UNIT,
+                        WeatherContract.WeatherColumns.TempUnit.FAHRENHEIT);
+
             RequestInfo info = new RequestInfo
                     .Builder(mRequestInfoListener)
                     .setWeatherLocation(weatherLocation)
-                    .setTemperatureUnit(getSelectedTemperatureUnit(mContext))
+                    .setTemperatureUnit(tempUnit)
                     .build();
             if (listener != null) mWeatherUpdateRequestListeners.put(info, listener);
             sWeatherManagerService.updateWeather(info);
@@ -272,28 +279,6 @@ public class CMWeatherManager {
                 }
             }
         }
-    }
-
-    /**
-     * Gets the currently selected temperature unit.
-     * If none is selected yet, returns a unit appropriate for the current locale
-     *
-     * @hide
-     */
-    public static int getSelectedTemperatureUnit(Context context) {
-        int tempUnit = CMSettings.Global.getInt(context.getContentResolver(),
-                CMSettings.Global.WEATHER_TEMPERATURE_UNIT, -1);
-        if (tempUnit != -1) {
-            return tempUnit;
-        }
-
-        Locale locale = context.getResources().getConfiguration().locale;
-        boolean useFahrenheit = locale.equals(Locale.US)
-                || locale.toString().equals("ms_MY") // Malaysia
-                || locale.toString().equals("si_LK"); // Sri Lanka
-        return useFahrenheit
-                ? WeatherContract.WeatherColumns.TempUnit.FAHRENHEIT
-                : WeatherContract.WeatherColumns.TempUnit.CELSIUS;
     }
 
     /**
