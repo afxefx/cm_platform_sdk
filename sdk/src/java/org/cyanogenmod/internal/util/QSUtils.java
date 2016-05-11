@@ -137,6 +137,9 @@ public class QSUtils {
                 case QSConstants.TILE_KERNEL:
                     removeTile = !deviceContainsKernelAdiutor(context);
                     break;
+                case QSConstants.TILE_V4A:
+                    removeTile = !deviceContainsV4a(context);
+                    break;
             }
             if (removeTile) {
                 iterator.remove();
@@ -318,6 +321,17 @@ public class QSUtils {
             return false;
         }
     }
+
+    public static boolean deviceContainsV4a(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        try {
+            packageManager.getPackageInfo("com.vipercn.viper4android_v2", PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (NameNotFoundException e) {
+            return false;
+        }
+    }
+
 
     private static boolean supportsRootAccess() {
         return Build.IS_DEBUGGABLE || "eng".equals(Build.TYPE);

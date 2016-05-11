@@ -62,6 +62,7 @@ public class QSConstants {
     public static final String TILE_FLOAT_MODE = "float_mode";
     public static final String TILE_THEMES = "themes";
     public static final String TILE_KERNEL = "kernel";
+    public static final String TILE_V4A = "v4a";
 
     public static final String DYNAMIC_TILE_NEXT_ALARM = "next_alarm";
     public static final String DYNAMIC_TILE_IME_SELECTOR = "ime_selector";
@@ -87,6 +88,7 @@ public class QSConstants {
         STATIC_TILES_AVAILABLE.add(TILE_INVERSION);
         STATIC_TILES_AVAILABLE.add(TILE_DND);
         STATIC_TILES_AVAILABLE.add(TILE_KERNEL);
+        STATIC_TILES_AVAILABLE.add(TILE_V4A);
 //        STATIC_TILES_AVAILABLE.add(TILE_NOTIFICATIONS);
 //        STATIC_TILES_AVAILABLE.add(TILE_DATA);
 //        STATIC_TILES_AVAILABLE.add(TILE_ROAMING);
