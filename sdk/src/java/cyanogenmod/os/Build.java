@@ -28,10 +28,10 @@ public class Build {
     public static final String UNKNOWN = "unknown";
 
     /** A build ID utilized to distinguish cyanogenmod versions */
-    public static final String CYANOGENMOD_VERSION = getString("ro.emotion.version");
+    public static final String CYANOGENMOD_VERSION = getString("ro.cm.version");
 
     /** A build ID string meant for displaying to the user */
-    public static final String CYANOGENMOD_DISPLAY_VERSION = getString("ro.emotion.display.version");
+    public static final String CYANOGENMOD_DISPLAY_VERSION = getString("ro.cm.display.version");
 
     private static final SparseArray<String> sdkMap;
     static
@@ -55,7 +55,7 @@ public class Build {
          * Will return 0 if the device does not support the CM SDK.
          */
         public static final int SDK_INT = SystemProperties.getInt(
-                "ro.emotion.build.version.plat.sdk", 0);
+                "ro.cm.build.version.plat.sdk", 0);
     }
 
     /**
