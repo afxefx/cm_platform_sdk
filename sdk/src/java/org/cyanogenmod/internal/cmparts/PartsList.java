@@ -15,6 +15,7 @@
  */
 package org.cyanogenmod.internal.cmparts;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -22,6 +23,7 @@ import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.util.Xml;
 
@@ -32,7 +34,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
 
 import static com.android.internal.R.styleable.Preference;
 import static com.android.internal.R.styleable.Preference_fragment;
@@ -40,29 +42,48 @@ import static com.android.internal.R.styleable.Preference_icon;
 import static com.android.internal.R.styleable.Preference_key;
 import static com.android.internal.R.styleable.Preference_summary;
 import static com.android.internal.R.styleable.Preference_title;
-
+import static cyanogenmod.platform.R.styleable.cm_Searchable;
+import static cyanogenmod.platform.R.styleable.cm_Searchable_xmlRes;
 
 public class PartsList {
 
-    public static final String ACTION_PART = "org.cyanogenmod.cmparts.PART";
-    public static final String ACTION_PART_CHANGED = "org.cyanogenmod.cmparts.PART_CHANGED";
+    private static final String TAG = PartsList.class.getSimpleName();
 
-    public static final String EXTRA_PART = "part";
-    public static final String EXTRA_PART_KEY = "key";
+    private static final boolean DEBUG = Log.isLoggable(TAG, Log.VERBOSE);
+
+    public static final String EXTRA_PART = ":cm:part";
 
     public static final String CMPARTS_PACKAGE = "org.cyanogenmod.cmparts";
 
-    private static final Map<String, PartInfo> sParts = new ArrayMap<String, PartInfo>();
+    public static final ComponentName CMPARTS_ACTIVITY = new ComponentName(
+            CMPARTS_PACKAGE, CMPARTS_PACKAGE + ".PartsActivity");
 
-    private static final AtomicBoolean sCatalogLoaded = new AtomicBoolean(false);
+    public static final String PARTS_ACTION_PREFIX = CMPARTS_PACKAGE + ".parts";
 
-    public static void loadParts(Context context) {
-        synchronized (sParts) {
-            if (sCatalogLoaded.get()) {
-                return;
+    private final Map<String, PartInfo> mParts = new ArrayMap<>();
+
+    private final Context mContext;
+
+    private static PartsList sInstance;
+    private static final Object sInstanceLock = new Object();
+
+    private PartsList(Context context) {
+        mContext = context;
+        loadParts();
+    }
+
+    public static PartsList get(Context context) {
+        synchronized (sInstanceLock) {
+            if (sInstance == null) {
+                sInstance = new PartsList(context);
             }
+            return sInstance;
+        }
+    }
 
-            final PackageManager pm = context.getPackageManager();
+    private void loadParts() {
+        synchronized (mParts) {
+            final PackageManager pm = mContext.getPackageManager();
             try {
                 final Resources r = pm.getResourcesForApplication(CMPARTS_PACKAGE);
                 if (r == null) {
@@ -70,7 +91,7 @@ public class PartsList {
                 }
                 int resId = r.getIdentifier("parts_catalog", "xml", CMPARTS_PACKAGE);
                 if (resId > 0) {
-                    loadPartsFromResourceLocked(r, resId, sParts);
+                    loadPartsFromResourceLocked(r, resId, mParts);
                 }
             } catch (PackageManager.NameNotFoundException e) {
                 // no cmparts installed
@@ -78,21 +99,21 @@ public class PartsList {
         }
     }
 
-    public static PartInfo getPartInfo(Context context, String key) {
-        synchronized (sParts) {
-            if (!sCatalogLoaded.get()) {
-                loadParts(context);
-            }
-            return sParts.get(key);
+    public Set<String> getPartsList() {
+        synchronized (mParts) {
+            return mParts.keySet();
         }
     }
 
-    public static final PartInfo getPartInfoForClass(Context context, String clazz) {
-        synchronized (sParts) {
-            if (!sCatalogLoaded.get()) {
-                loadParts(context);
-            }
-            for (PartInfo info : sParts.values()) {
+    public PartInfo getPartInfo(String key) {
+        synchronized (mParts) {
+            return mParts.get(key);
+        }
+    }
+
+    public final PartInfo getPartInfoForClass(String clazz) {
+        synchronized (mParts) {
+            for (PartInfo info : mParts.values()) {
                 if (info.getFragmentClass() != null && info.getFragmentClass().equals(clazz)) {
                     return info;
                 }
@@ -101,12 +122,8 @@ public class PartsList {
         }
     }
 
-    private static void loadPartsFromResourceLocked(Resources res, int resid,
-                                                    Map<String, PartInfo> target) {
-        if (sCatalogLoaded.get()) {
-            return;
-        }
-
+    private void loadPartsFromResourceLocked(Resources res, int resid,
+                                             Map<String, PartInfo> target) {
         XmlResourceParser parser = null;
 
         try {
@@ -122,7 +139,7 @@ public class PartsList {
             String nodeName = parser.getName();
             if (!"parts-catalog".equals(nodeName)) {
                 throw new RuntimeException(
-                        "XML document must start with <parts-catalog> tag; found"
+                        "XML document must start with <parts-catalog> tag; found "
                                 + nodeName + " at " + parser.getPositionDescription());
             }
 
@@ -172,6 +189,10 @@ public class PartsList {
 
                     info.setFragmentClass(sa.getString(Preference_fragment));
                     info.setIconRes(sa.getResourceId(Preference_icon, 0));
+
+                    sa = res.obtainAttributes(attrs, cm_Searchable);
+                    info.setXmlRes(sa.getResourceId(cm_Searchable_xmlRes, 0));
+
                     sa.recycle();
 
                     target.put(key, info);
@@ -187,6 +208,5 @@ public class PartsList {
         } finally {
             if (parser != null) parser.close();
         }
-        sCatalogLoaded.set(true);
     }
 }

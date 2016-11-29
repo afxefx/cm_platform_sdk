@@ -15,63 +15,69 @@
  */
 package org.cyanogenmod.internal.cmparts;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v7.preference.Preference;
+import android.os.Bundle;
 import android.util.AttributeSet;
 
-import static org.cyanogenmod.internal.cmparts.PartsList.ACTION_PART;
-import static org.cyanogenmod.internal.cmparts.PartsList.ACTION_PART_CHANGED;
-import static org.cyanogenmod.internal.cmparts.PartsList.EXTRA_PART;
-import static org.cyanogenmod.internal.cmparts.PartsList.EXTRA_PART_KEY;
+import cyanogenmod.preference.RemotePreference;
 
-public class CMPartsPreference extends Preference {
+/**
+ * A link to a remote preference screen which can be used with a minimum amount
+ * of information. Supports summary updates asynchronously.
+ */
+public class CMPartsPreference extends RemotePreference {
 
     private static final String TAG = "CMPartsPreference";
 
     private final PartInfo mPart;
 
-    public CMPartsPreference(Context context, AttributeSet attrs) {
-        super(context, attrs, com.android.internal.R.attr.preferenceScreenStyle);
+    private final Context mContext;
 
-        mPart = PartsList.getPartInfo(context, getKey());
+    public CMPartsPreference(Context context, AttributeSet attrs,
+                            int defStyle, int defStyleRes) {
+        super(context, attrs, defStyle, defStyleRes);
+        mContext = context;
+        mPart = PartsList.get(context).getPartInfo(getKey());
         if (mPart == null) {
             throw new RuntimeException("Part not found: " + getKey());
         }
 
-        Intent i = new Intent(ACTION_PART);
-        i.putExtra(EXTRA_PART_KEY, mPart.getName());
-        setIntent(i);
-        update();
+        updatePreference();
+        setIntent(mPart.getIntentForActivity());
+    }
+
+    public CMPartsPreference(Context context, AttributeSet attrs, int defStyle) {
+        this(context, attrs, defStyle, 0);
+    }
+
+    public CMPartsPreference(Context context, AttributeSet attrs) {
+        this(context, attrs, com.android.internal.R.attr.preferenceScreenStyle);
     }
 
     @Override
-    public void onAttached() {
-        super.onAttached();
-        getContext().registerReceiver(mPartChangedReceiver, new IntentFilter(ACTION_PART_CHANGED));
-    }
-
-    @Override
-    public void onDetached() {
-        super.onDetached();
-        getContext().unregisterReceiver(mPartChangedReceiver);
-    }
-
-    private void update() {
-        setTitle(mPart.getTitle());
-        setSummary((CharSequence) mPart.getSummary());
-    }
-
-    private final BroadcastReceiver mPartChangedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (ACTION_PART_CHANGED.equals(intent.getAction()) &&
-                    mPart.getName().equals(intent.getStringExtra(EXTRA_PART_KEY))) {
-                mPart.updateFrom((PartInfo) intent.getParcelableExtra(EXTRA_PART));
-                update();
+    public void onRemoteUpdated(Bundle bundle) {
+        if (bundle.containsKey(PartsList.EXTRA_PART)) {
+            PartInfo update = bundle.getParcelable(PartsList.EXTRA_PART);
+            if (update != null) {
+                mPart.updateFrom(update);
+                updatePreference();
             }
         }
-    };
+    }
+
+    @Override
+    protected String getRemoteKey(Bundle metaData) {
+        // remote key is the same as ours
+        return getKey();
+    }
+
+    private void updatePreference() {
+        if (isAvailable() != mPart.isAvailable()) {
+            setAvailable(mPart.isAvailable());
+        }
+        if (isAvailable()) {
+            setTitle(mPart.getTitle());
+            setSummary(mPart.getSummary());
+        }
+    }
 }

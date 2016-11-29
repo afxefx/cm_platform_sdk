@@ -865,6 +865,19 @@ public final class CMSettings {
         public static final Validator ZEN_PRIORITY_ALLOW_LIGHTS_VALIDATOR = sBooleanValidator;
 
         /**
+         * Whether vibrations are allowed when in zen priority mode during downtime
+         * 0: no vibrations
+         * 1: vibrations for calls only
+         * 2: vibrations for calls and notifications
+         * @hide
+         */
+        public static final String ZEN_PRIORITY_VIBRATION_MODE = "zen_priority_vibration_mode";
+
+        /** @hide */
+        public static final Validator ZEN_PRIORITY_VIBRATION_VALIDATOR =
+                new InclusiveIntegerRangeValidator(0, 2);
+
+        /**
          * Display style of AM/PM next to clock in status bar
          * 0: Normal display (Eclair stock)
          * 1: Small display (Froyo stock)
@@ -984,12 +997,13 @@ public final class CMSettings {
          * 6 - Launch Camera
          * 7 - Action Sleep
          * 8 - Last app
+         * 9 - Toggle split screen
          */
         public static final String KEY_HOME_LONG_PRESS_ACTION = "key_home_long_press_action";
 
         /** @hide */
         public static final Validator KEY_HOME_LONG_PRESS_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the home key is double-tapped.
@@ -1000,7 +1014,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_HOME_DOUBLE_TAP_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Whether to wake the screen with the back key, the value is boolean.
@@ -1040,7 +1054,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_MENU_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the menu key is long-pressed.
@@ -1051,7 +1065,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_MENU_LONG_PRESS_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the assistant (search) key is pressed. (Default is 3)
@@ -1061,7 +1075,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_ASSIST_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the assistant (search) key is long-pressed. (Default is 4)
@@ -1071,7 +1085,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_ASSIST_LONG_PRESS_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the app switch key is pressed. (Default is 2)
@@ -1081,7 +1095,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_APP_SWITCH_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Action to perform when the app switch key is long-pressed. (Default is 0)
@@ -1091,7 +1105,7 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator KEY_APP_SWITCH_LONG_PRESS_ACTION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 8);
+                new InclusiveIntegerRangeValidator(0, 9);
 
         /**
          * Whether to wake the screen with the home key, the value is boolean.
@@ -1151,6 +1165,16 @@ public final class CMSettings {
 
         /** @hide */
         public static final Validator CAMERA_LAUNCH_VALIDATOR =
+                sBooleanValidator;
+
+        /**
+         * Show icon when stylus is used
+         * The value is boolean (1 or 0).
+         */
+        public static final String STYLUS_ICON_ENABLED = "stylus_icon_enabled";
+
+        /** @hide */
+        public static final Validator STYLUS_ICON_ENABLED_VALIDATOR =
                 sBooleanValidator;
 
         /**
@@ -1884,6 +1908,7 @@ public final class CMSettings {
                 CMSettings.System.CAMERA_WAKE_SCREEN,
                 CMSettings.System.CAMERA_SLEEP_ON_RELEASE,
                 CMSettings.System.CAMERA_LAUNCH,
+                CMSettings.System.STYLUS_ICON_ENABLED,
                 CMSettings.System.SWAP_VOLUME_KEYS_ON_ROTATION,
                 CMSettings.System.BATTERY_LIGHT_ENABLED,
                 CMSettings.System.BATTERY_LIGHT_PULSE,
@@ -1920,7 +1945,6 @@ public final class CMSettings {
                 CMSettings.System.QS_SHOW_BRIGHTNESS_SLIDER,
                 CMSettings.System.STATUS_BAR_BRIGHTNESS_CONTROL,
                 CMSettings.System.VOLBTN_MUSIC_CONTROLS,
-                CMSettings.System.SWAP_VOLUME_KEYS_ON_ROTATION,
                 CMSettings.System.USE_EDGE_SERVICE_FOR_GESTURES,
                 CMSettings.System.STATUS_BAR_NOTIF_COUNT,
                 CMSettings.System.CALL_RECORDING_FORMAT,
@@ -2029,6 +2053,7 @@ public final class CMSettings {
             VALIDATORS.put(CAMERA_WAKE_SCREEN, CAMERA_WAKE_SCREEN_VALIDATOR);
             VALIDATORS.put(CAMERA_SLEEP_ON_RELEASE, CAMERA_SLEEP_ON_RELEASE_VALIDATOR);
             VALIDATORS.put(CAMERA_LAUNCH, CAMERA_LAUNCH_VALIDATOR);
+            VALIDATORS.put(STYLUS_ICON_ENABLED, STYLUS_ICON_ENABLED_VALIDATOR);
             VALIDATORS.put(SWAP_VOLUME_KEYS_ON_ROTATION,
                     SWAP_VOLUME_KEYS_ON_ROTATION_VALIDATOR);
             VALIDATORS.put(BATTERY_LIGHT_ENABLED, BATTERY_LIGHT_ENABLED_VALIDATOR);
@@ -2110,6 +2135,7 @@ public final class CMSettings {
             VALIDATORS.put(HEADSET_CONNECT_PLAYER, HEADSET_CONNECT_PLAYER_VALIDATOR);
             VALIDATORS.put(ZEN_ALLOW_LIGHTS, ZEN_ALLOW_LIGHTS_VALIDATOR);
             VALIDATORS.put(ZEN_PRIORITY_ALLOW_LIGHTS, ZEN_PRIORITY_ALLOW_LIGHTS_VALIDATOR);
+            VALIDATORS.put(ZEN_PRIORITY_VIBRATION_MODE, ZEN_PRIORITY_VIBRATION_VALIDATOR);
             VALIDATORS.put(TOUCHSCREEN_GESTURE_HAPTIC_FEEDBACK,
                     TOUCHSCREEN_GESTURE_HAPTIC_FEEDBACK_VALIDATOR);
             VALIDATORS.put(DISPLAY_PICTURE_ADJUSTMENT,
